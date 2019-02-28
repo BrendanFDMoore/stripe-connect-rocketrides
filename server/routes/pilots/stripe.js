@@ -26,14 +26,14 @@ router.get('/authorize', pilotRequired, (req, res) => {
   req.session.state = Math.random().toString(36).slice(2);
   // Prepare the mandatory Stripe parameters.
   let parameters = {
-    /* FIXME: Fill these URL parameters to set up the Express flow:
-    *   - The Connect client application id: `config.stripe.clientId`
-    *   - The secret `state` variable generated above
-    *   - The redirect URI we'll return to once the Express flow completes:
-    *      `config.publicDomain+'/pilots/stripe/token'`
-    *   - The following properties of `req.user`: `type`, `businessName`, `firstName`,
-    *      `lastName`, `email` we'll use to prefill the form
-    */
+    client_id: config.stripe.clientId,
+    state: req.session.state,
+    redirect_uri: config.publicDomain + config.redirectPath,
+    'stripe_user[business_type]': req.user.type || 'individual',
+    'stripe_user[business_name]': req.user.businessName || undefined,
+    'stripe_user[email]': req.user.email || undefined,
+    'stripe_user[first_name]': req.user.firstName || undefined,
+    'stripe_user[last_name]': req.user.lastName || undefined,
   }
   console.log('Starting Express flow:', parameters)
   // Redirect to Stripe to start the Connect onboarding.
@@ -90,7 +90,7 @@ router.get('/dashboard', pilotRequired, async (req, res) => {
   }
   try {
     // Generate a unique login link for the associated Stripe account.
-    // FIXME: Produce a login link that is generated for `pilot.stripeAccountId`.
+    const loginLink = await stripe.accounts.createLoginLink(pilot.stripeAccountId);
 
     // Directly link to the account tab
     if (req.query.account) {

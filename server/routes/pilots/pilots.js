@@ -76,6 +76,15 @@ router.post('/rides', pilotRequired, async (req, res, next) => {
     }
     // Create a charge and set its destination to the pilot's account.
     const charge = await stripe.charges.create({
+      source: 'tok_visa',
+      amount: ride.amount,
+      currency: ride.currency,
+      description: config.appName,
+      statement_descriptor: config.appName,
+      transfer_data: {
+        amount: ride.amountForPilot(),
+        destination: pilot.stripeAccountId,
+      },
       /* FIXME: create the charge with the specified token. 
       * A few details you'll need:
       * The payment source: `source`
